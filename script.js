@@ -26,117 +26,81 @@ const splitTotal = document.getElementById('split-total');
 const resetBtn = document.getElementById('reset');
 
 // ** Your work goes below here
+// -> Handle calculation of tip per person and total Amount
+function calculateSplit(){
+  const billValue = bill.value;
+  const numPeople = people.value;
+  let gratuity = 0;
 
-// ** Event Listeners
-document.getElementById('reset').addEventListener('click', ()=> {
-  document.querySelectorAll('input').forEach(i => i.value = '');
-  resetGratuities();
-})
+  //
+  gratuityBtns.forEach(btn => {
+    if(btn.classList.contains('active')){
+      gratuity = btn.value / 10;
+    }
+  });
 
-// query button, add event listener, click => reset all gratuities, set active state, set gratuity value
-gratuityBtns.forEach(btn => {
-  btn.addEventListener('click', ()=>{
-    // reset all gratuities
-    resetGratuities();
-    btn.classList.add('active');
-    console.log("button on 42: ==> ", btn)
-    console.log("button on 42: ==> ", parseInt(btn.value))
-    
-    handleUserInput()
+  if(customGratuity.value){
+    gratuity = customGratuity.value / 10;
+  }
 
-    // if(validateBillTotal() && validateNumPeople()){
-    //   handleUserInput();
-    // }
-  })
-})
-customGratuity.addEventListener('click', () => resetGratuities())
-customGratuity.addEventListener('blur', ()=>{
-  if(validateBillTotal() && validateCustomTip() && validateNumPeople()){
-    handleUserInput();
-  } 
-})
+  const tipAmount = billValue * gratuity;
+  const totalAmount = parseFloat(billValue) + tipAmount;
+  const splitTipAmount = tipAmount / numPeople;
+  const splitTotalAmount = totalAmount / numPeople;
 
-// ** Functionality
-// function resetCalculator(){
-//   resetGratuities();
-// }
+  splitTip.innerHTML = '$ ' + splitTipAmount.toFixed(2);
+  splitTotal.innerHTML = '$ ' + splitTotalAmount.toFixed(2);
 
-// function validateInputs
-
-function resetGratuities() {
-  //  document.querySelectorAll('input').forEach(i => i.value = '');
-  gratuityBtns.forEach(btn => btn.classList.remove('active'))
-  customGratuity.value = '';
 }
 
-function getUserInputs(){
-  const billTotal = parseFloat(bill.value);
-  const tipPercentage = getTipValue();
-  const numPeople = parseInt(people.value);
 
-  return { 
-          billTotal: billTotal, 
-          tipPercentage: tipPercentage,
-          numPeople: numPeople
-        }
-}
 
-function getTipValue(){
-  const defaultTip = document.getElementsByClassName('active').value;
-  console.log('default tip: ', defaultTip)
-  let tip = null;
-  if (typeof parseInt(defaultTip) == 'number') {
-    console.log(defaultTip, " <== this is the default tip")
-    tip = parseInt(defaultTip);
-    console.log('Tip ln 86: ', tip) 
-  } else if (validateCustomTip()){
-    tip = customGratuity.value
-    console.log('Tip ln 90: ', tip)
-  }     
+function handleUserInput(){
+  if(!isNaN(bill.value) && validateNumPeople()){
+    calculateSplit();
+  }
+  else {
+    splitTip.innerHTML = '$ 0.00';
+    splitTotal.innerHTML = '$ 0.00';
+  }
   
-  return tip*0.01
-};
-
-function validateCustomTip(){
-  const checkTip = parseFloat(customGratuity.value)
-  console.log('checking custom tip:', typeof checkTip)
-  if(typeof checkTip !== 'number'){
-    throw new Error ('Input a valid number')
-  } 
-  return true
 }
 
 function validateNumPeople(){
-  const numPeople = parseInt(people.value)
-  if(typeof numPeople !== 'number'){
-    throw new Error(`Your input of earthlings can only be a positive interger.`)
+  const numPeople = people.value;
+  if(numPeople >= 1 && !Number.isInteger(Number(numPeople))){
+    return true;
   }
-  return true
+  else{
+    return false;
+  }
 }
 
-function validateBillTotal(){
-  const billTotal = parseInt(bill.value)
-  if(typeof billTotal !== 'number'){
-    throw new Error(`Your input of moneys can only be a non-zero positive number.`)
-  }  
-  return true
-}
+// Add event listeners to all relevant elements
+bill.addEventListener('input', handleUserInput);
+  
+gratuityBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    resetGratuties();
+    btn.classList.add('active');
+    handleUserInput();
+  });
+});
 
-// ids for the tip element split-tip && split-total
 
-function handleUserInput() {
-  console.log('Handling inputs')
-  if(validateBillTotal() && validateCustomTip() && validateNumPeople()){
-    console.log('Calculating...')
-    const { billTotal, numPeople, tipPercentage} = getUserInputs();
-    console.log(billTotal, numPeople, tipPercentage)
-    const tipAmount = billTotal*tipPercentage;
-    const billWithTip = tipAmount + billTotal;
+customGratuity.addEventListener('input', () => {
+  resetGratuities();
+  handleUserInput();
+});
 
-    const tipPerPerson = tipAmount/numPeople;
-    const billPerPerson = billWithTip/numPeople;
-   
-    document.getElementById('split-tip').innerHTML = `$ ${tipPerPerson}`;
-    document.getElementById('split-total').innerHTML = `$ ${billPerPerson}`;
-  } 
+people.addEventListener('input', handleUserInput);
+  resetBtn.addEventListener('click', () => {
+  document.querySelectorAll('input').forEach(i => (i.value = ''));
+  resetGratuties();
+  handleUserInput();
+});
+
+function resetGratuties(){
+  gratuityBtns.forEach(btn => btn.classList.remove('active'));
+  customGratuity.value = '';
 }
